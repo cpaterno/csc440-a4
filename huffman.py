@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import sys
 import marshal
@@ -8,38 +9,44 @@ try:
 except:
     import pickle
 
-def encode(msg):
 
+def encode(msg):
+    '''Bla'''
     raise NotImplementedError
+
 
 def decode(msg, decoderRing):
-
+    '''Bla'''
     raise NotImplementedError
 
-def compress(msg):
 
+def compress(msg):
+    '''Bla'''
     # Initializes an array to hold the compressed message.
     compressed = array.array('B')
     raise NotImplementedError
 
-def decompress(msg, decoderRing):
 
+def decompress(msg, decoderRing):
+    '''Bla'''
     # Represent the message as an array
-    byteArray = array.array('B',msg)
+    byte_array = array.array('B', msg)
     raise NotImplementedError
 
-def usage():
-    sys.stderr.write("Usage: {} [-c|-d|-v|-w] infile outfile\n".format(sys.argv[0]))
-    exit(1)
 
-if __name__=='__main__':
+def usage():
+    '''Tell user how to run program and exit to stderr'''
+    sys.stderr.write(f'Usage: {sys.argv[0]} [-c|-d|-v|-w] infile outfile\n')
+    sys.exit(1)
+    return None
+
+
+if __name__ == '__main__':
     if len(sys.argv) != 4:
         usage()
+
     opt = sys.argv[1]
-    compressing = False
-    decompressing = False
-    encoding = False
-    decoding = False
+    compressing = decompressing = encoding = decoding = False
     if opt == "-c":
         compressing = True
     elif opt == "-d":
@@ -50,7 +57,6 @@ if __name__=='__main__':
         decoding = True
     else:
         usage()
-
     infile = sys.argv[2]
     outfile = sys.argv[3]
     assert os.path.exists(infile)
@@ -61,24 +67,20 @@ if __name__=='__main__':
         fp.close()
         if compressing:
             compr, decoder = compress(msg)
-            fcompressed = open(outfile, 'wb')
-            marshal.dump((pickle.dumps(decoder), compr), fcompressed)
-            fcompressed.close()
+            with open(outfile, 'wb') as fcompressed:
+                marshal.dump((pickle.dumps(decoder), compr), fcompressed)
         else:
             enc, decoder = encode(msg)
             print(msg)
-            fcompressed = open(outfile, 'wb')
-            marshal.dump((pickle.dumps(decoder), enc), fcompressed)
-            fcompressed.close()
+            with open(outfile, 'wb') as fcompressed:
+                marshal.dump((pickle.dumps(decoder), enc), fcompressed)
     else:
-        fp = open(infile, 'rb')
-        pickleRick, compr = marshal.load(fp)
-        decoder = pickle.loads(pickleRick)
-        fp.close()
+        with open(infile, 'rb') as fp:
+            pickle_rick, compr = marshal.load(fp)
+            decoder = pickle.loads(pickle_rick)
         if decompressing:
             msg = decompress(compr, decoder)
         else:
             msg = decode(compr, decoder)
-        fp = open(outfile, 'wb')
-        fp.write(msg)
-        fp.close()
+        with open(outfile, 'wb') as fp:
+            fp.write(msg)
