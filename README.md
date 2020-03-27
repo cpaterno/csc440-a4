@@ -1,2 +1,16 @@
 # csc440-a4
-Huffman Encoding
+Python implementation of Huffman Encoding (greedy algorithm)
+
+
+## Algorithm
+- [ ] `encode`(msg) -> (enc, ring) and `compress`(msg) -> (compressed, ring)
+    - [ ] create frequency table of bytes: counts
+    - [ ] build tree from priority queue of nodes (count, byte)
+    - [ ] create enc/compressed from msg and tree
+    - [ ] create ring as tuple (numbits, tree) 
+    - [ ] enc is a regular string (encode only)
+    - [ ] compressed is a bytearray, therefore shift bits in (compress only)
+- [ ] `decode`(enc, ring) -> msg  and `decompress`(compressed, ring) -> msg
+    - [ ] error check to ensure enc is a string of 1s and 0s (decode only)
+    - [ ] create msg from enc/compressed and ring
+    - [ ] bitshifting required (decompress only)
