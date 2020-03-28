@@ -5,7 +5,7 @@ import marshal
 import array
 import collections
 import heapq
-from time import time
+#from time import time
 
 try:
     import cPickle as pickle
@@ -49,16 +49,28 @@ def huff_tree_rs(freqs):
     return nodes[0]
 
 
+def huff_tree_rs2(freqs):
+    '''Given a frequency table of bytes output a huffman tree
+    Format: (subtree, count)
+    '''
+    assert len(freqs)  # can't compress nothing
+    # list of nodes -> (symbol, count), reverse sorted by count
+    nodes = freqs.most_common()
+    # TODO: Invariant
+    while len(nodes) > 1:
+        first = nodes.pop()
+        second = nodes.pop()
+        new_node = ((first, second), first[1] + second[1])
+        nodes.append(new_node)
+        nodes.sort(key=lambda k: k[1], reverse=True)
+    return nodes[0]
+
+
 def encode(msg):
     '''Bla'''
     freqs = collections.Counter(msg)
-    t = time()
-    tree = huff_tree_pq(freqs)
-    print(time() - t)
-    t = time()
-    tree2 = huff_tree_rs(freqs)
-    print(time() - t)
-    assert tree[0] == tree2[0]
+    # TODO: play around with different tree reps
+    tree = huff_tree_rs(freqs)  # pure Daniels notation
     raise NotImplementedError
 
 
