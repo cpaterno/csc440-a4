@@ -12,6 +12,7 @@ try:
 except:
     import pickle
 
+#_________________________________TREE OPTIONS________________________________#
 
 def huff_tree_pq(freqs):
     '''Given a frequency table of bytes output a huffman tree
@@ -64,6 +65,19 @@ def huff_tree_rs2(freqs):
         nodes.append(new_node)
         nodes.sort(key=lambda k: k[1], reverse=True)
     return nodes[0]
+
+
+#_________________________________TREE OPTIONS________________________________#
+
+
+#_____________________________TRAVERSAL OPTIONS_______________________________#
+
+def enc_trav_rs(tree):
+    '''Bla'''
+
+    pass
+
+#_____________________________TRAVERSAL OPTIONS_______________________________#
 
 
 def encode(msg):
