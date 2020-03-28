@@ -5,6 +5,7 @@ import marshal
 import array
 import collections
 import heapq
+from time import time
 
 try:
     import cPickle as pickle
@@ -12,12 +13,16 @@ except:
     import pickle
 
 
-def huff_tree(freqs):
-    '''Given a frequency table of bytes output a huffman tree'''
+def huff_tree_pq(freqs):
+    '''Given a frequency table of bytes output a huffman tree
+    Format: (count, index, subtree)
+    '''
+    assert len(freqs)  # can't compress nothing
     # list of nodes -> (count, index, symbol), index is added to break ties
     nodes = [(y, i, x) for i, (x, y) in enumerate(freqs.most_common())]
     idx = len(nodes)
     heapq.heapify(nodes)
+    # TODO: Invariant
     while len(nodes) > 1:
         first = heapq.heappop(nodes)
         second = heapq.heappop(nodes)
@@ -27,14 +32,33 @@ def huff_tree(freqs):
     return nodes[0]
 
 
+def huff_tree_rs(freqs):
+    '''Given a frequency table of bytes output a huffman tree
+    Format: (count, subtree)
+    '''
+    assert len(freqs)  # can't compress nothing
+    # list of nodes -> (count, symbol), reverse sorted
+    nodes = [(y, x) for x, y in freqs.most_common()]
+    # TODO: Invariant
+    while len(nodes) > 1:
+        first = nodes.pop()
+        second = nodes.pop()
+        new_node = (first[0] + second[0], (first, second))
+        nodes.append(new_node)
+        nodes.sort(key=lambda k: k[0], reverse=True)
+    return nodes[0]
+
+
 def encode(msg):
     '''Bla'''
     freqs = collections.Counter(msg)
-    tree = huff_tree(freqs)
-    print(tree)
-    print(tree[0])
-    print(tree[1])
-    print(tree[2])
+    t = time()
+    tree = huff_tree_pq(freqs)
+    print(time() - t)
+    t = time()
+    tree2 = huff_tree_rs(freqs)
+    print(time() - t)
+    assert tree[0] == tree2[0]
     raise NotImplementedError
 
 
