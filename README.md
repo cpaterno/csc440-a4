@@ -4,8 +4,8 @@ Python implementation of Huffman Encoding (greedy algorithm)
 
 ## Algorithm
 - [ ] `encode`(msg) -> (enc, ring) and `compress`(msg) -> (compressed, ring)
-    - [ ] create frequency table of bytes: counts
-    - [ ] build tree from priority queue of nodes (count, byte)
+    - [x] create frequency table of bytes: counts
+    - [ ] build tree from priority queue of nodes (byte, count)
     - [ ] create enc/compressed from msg and tree
     - [ ] create ring as tuple (numbits, tree) 
     - [ ] enc is a regular string (encode only)

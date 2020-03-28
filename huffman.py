@@ -3,6 +3,8 @@ import os
 import sys
 import marshal
 import array
+import collections
+import heapq
 
 try:
     import cPickle as pickle
@@ -10,12 +12,33 @@ except:
     import pickle
 
 
+def huff_tree(freqs):
+    '''Given a frequency table of bytes output a huffman tree'''
+    # list of nodes -> (count, index, symbol), index is added to break ties
+    nodes = [(y, i, x) for i, (x, y) in enumerate(freqs.most_common())]
+    idx = len(nodes)
+    heapq.heapify(nodes)
+    while len(nodes) > 1:
+        first = heapq.heappop(nodes)
+        second = heapq.heappop(nodes)
+        new_node = (first[0] + second[0], idx, (first, second))
+        idx += 1
+        heapq.heappush(nodes, new_node)
+    return nodes[0]
+
+
 def encode(msg):
     '''Bla'''
+    freqs = collections.Counter(msg)
+    tree = huff_tree(freqs)
+    print(tree)
+    print(tree[0])
+    print(tree[1])
+    print(tree[2])
     raise NotImplementedError
 
 
-def decode(msg, decoderRing):
+def decode(msg, ring):
     '''Bla'''
     raise NotImplementedError
 
@@ -27,7 +50,7 @@ def compress(msg):
     raise NotImplementedError
 
 
-def decompress(msg, decoderRing):
+def decompress(msg, ring):
     '''Bla'''
     # Represent the message as an array
     byte_array = array.array('B', msg)
@@ -62,9 +85,8 @@ if __name__ == '__main__':
     assert os.path.exists(infile)
 
     if compressing or encoding:
-        fp = open(infile, 'rb')
-        msg = fp.read()
-        fp.close()
+        with open(infile, 'rb') as fp:
+            msg = fp.read()
         if compressing:
             compr, decoder = compress(msg)
             with open(outfile, 'wb') as fcompressed:
