@@ -8,10 +8,11 @@ Python implementation of Huffman Encoding (greedy algorithm)
     - [x] build tree from priority queue of nodes (count, byte)
     - [x] create mapping from byte to codeword
     - [x] create enc/compressed from msg and tree
-    - [x] create ring as tuple (numbits, tree) 
     - [x] enc is a regular string (encode only)
     - [ ] compressed is a bytearray, therefore shift bits in (compress only)
+    - [x] create ring as tree (encode only)
+    - [ ] create ring as tuple (numbits, tree) (compress only) 
 - [ ] `decode`(enc, ring) -> msg  and `decompress`(compressed, ring) -> msg
-    - [ ] error check to ensure enc is a string of 1s and 0s (decode only)
-    - [ ] create msg from enc/compressed and ring
+    - [x] error check to ensure enc is a string of 1s and 0s (decode only)
+    - [x] create msg from enc/compressed and ring
     - [ ] bitshifting required (decompress only)
