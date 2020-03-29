@@ -115,12 +115,25 @@ def encode(msg):
     enc = ''
     for b in msg:
         enc += mapping[b]
-    return enc, (len(enc), tree)
+    return enc, tree
 
 
-def decode(msg, ring):
+def decode(enc, ring):
     '''Bla'''
-    raise NotImplementedError
+    msg = ''
+    tree = ring
+    for d in enc:
+        if d != '0' and d != '1':
+            sys.stderr.write(f'enc must be a valid binary string\n')
+            sys.exit(1)
+        elif d == '0':
+            tree = tree[1][0]
+        else:
+            tree = tree[1][1]
+        if not isinstance(tree[1], tuple):
+            msg += chr(tree[1])
+            tree = ring
+    return msg
 
 
 def compress(msg):
@@ -130,7 +143,7 @@ def compress(msg):
     raise NotImplementedError
 
 
-def decompress(msg, ring):
+def decompress(compressed, ring):
     '''Bla'''
     # Represent the message as an array
     byte_array = array.array('B', msg)
@@ -184,5 +197,6 @@ if __name__ == '__main__':
             msg = decompress(compr, decoder)
         else:
             msg = decode(compr, decoder)
+            msg = msg.encode()
         with open(outfile, 'wb') as fp:
             fp.write(msg)
