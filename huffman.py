@@ -99,7 +99,7 @@ def compress(msg):
                 buf = 0
     rem_bits = num_bits % 8
     if rem_bits:
-        buf <= (8 - rem_bits)
+        buf <<= (8 - rem_bits)
         compressed.append(buf)
     return compressed, (num_bits, tree)
 
@@ -110,19 +110,17 @@ def decompress(compressed, ring):
     num_bits, start_tree = ring
     tree = start_tree
     for byte in compressed:
-
-        '''
-        for bit in bin(byte)[2:].zfill(8):
+        for i in range(7, -1, -1):
             if num_bits:
                 num_bits -= 1
-                if bit == '0':
-                    tree = tree[2][0]
-                else:
+                bit = byte & (0x1 << i)
+                if bit:
                     tree = tree[2][1]
+                else:
+                    tree = tree[2][0]
                 if not isinstance(tree[2], tuple):
                     msg.append(tree[2])
                     tree = start_tree
-        '''
     return msg
 
 
