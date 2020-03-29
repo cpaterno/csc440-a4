@@ -32,10 +32,10 @@ def huff_tree(freqs):
 
 def mapping_enc(tree):
     '''Bla'''
+    assert tree  # can't compress nothing
     mapping = {}
     s = collections.deque()
-    s.append(('1', tree[2][1]))
-    s.append(('0', tree[2][0]))
+    s.append(('', tree))
     # TODO: invariant
     while s:
         codeword, node = s.pop()
@@ -87,24 +87,39 @@ def compress(msg):
     tree = huff_tree(freqs)  # priority queue
     mapping = mapping_enc(tree)
     compressed = bytearray()
-    numbits = buf = 0
+    num_bits = buf = 0
     for byte in msg:
         for bit in mapping[byte]:
-            numbits += 1
+            num_bits += 1
             buf <<= 0x1
             if bit == '1':
                 buf |= 0x1
-            if numbits % 8 == 0 and numbits > 0:
+            if num_bits % 8 == 0:
                 compressed.append(buf)
                 buf = 0
-    if buf > 0:
-            buf <<= numbits
-    return compressed, (numbits, tree)
+    if buf:
+        buf <<= (num_bits % 8)
+        compressed.append(buf)
+    return compressed, (num_bits, tree)
 
 
 def decompress(compressed, ring):
     '''Bla'''
-    raise NotImplementedError
+    msg = bytearray()
+    num_bits, start_tree = ring
+    tree = start_tree
+    for byte in compressed:
+        for bit in bin(byte)[2:]:
+            if num_bits:
+                num_bits -= 1
+                if bit == '0':
+                    tree = tree[2][0]
+                else:
+                    tree = tree[2][1]
+                if not isinstance(tree[2], tuple):
+                    msg.append(tree[2])
+                    tree = start_tree
+    return msg
 
 
 def usage():
