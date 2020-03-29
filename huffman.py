@@ -5,7 +5,7 @@ import marshal
 import array
 import collections
 import heapq
-#from time import time
+from time import time
 
 try:
     import cPickle as pickle
@@ -72,10 +72,33 @@ def huff_tree_rs2(freqs):
 
 #_____________________________TRAVERSAL OPTIONS_______________________________#
 
-def enc_trav_rs(tree):
+def mapping_enc_rc_rs(tree, mapping, codeword=''):
     '''Bla'''
+    if not isinstance(tree[1], tuple):
+        mapping[tree[1]] = codeword
+    else:
+        mapping_enc_rc_rs(tree[1][0], mapping, codeword + '0')
+        mapping_enc_rc_rs(tree[1][1], mapping, codeword + '1')
+    return None
 
-    pass
+
+def mapping_enc_it_rs(tree):
+    '''Bla'''
+    mapping = {}
+    s = collections.deque()
+    s.append(('1', tree[1][1]))
+    s.append(('0', tree[1][0]))
+    while s:
+        codeword, node = s.pop()
+        # leaf
+        if not isinstance(node[1], tuple):
+            mapping[node[1]] = codeword
+        else:
+            # right
+            s.append((codeword + '1', node[1][1]))
+            # left
+            s.append((codeword + '0', node[1][0]))
+    return mapping
 
 #_____________________________TRAVERSAL OPTIONS_______________________________#
 
@@ -85,6 +108,14 @@ def encode(msg):
     freqs = collections.Counter(msg)
     # TODO: play around with different tree reps
     tree = huff_tree_rs(freqs)  # pure Daniels notation
+    t = time()
+    m1 = {}
+    mapping_enc_rc_rs(tree, m1)
+    print(time() - t)
+    t = time()
+    m2 = mapping_enc_it_rs(tree)
+    print(time() - t)
+    assert m1 == m2
     raise NotImplementedError
 
 
