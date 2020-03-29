@@ -2,10 +2,8 @@
 import os
 import sys
 import marshal
-import array
 import collections
 import heapq
-#from time import time
 
 try:
     import cPickle as pickle
@@ -84,15 +82,28 @@ def decode(enc, ring):
 
 def compress(msg):
     '''Bla'''
-    # Initializes an array to hold the compressed message.
-    compressed = array.array('B')
-    raise NotImplementedError
+    freqs = collections.Counter(msg)
+    # TODO: play around with different tree buildings and mappings
+    tree = huff_tree(freqs)  # priority queue
+    mapping = mapping_enc(tree)
+    compressed = bytearray()
+    numbits = buf = 0
+    for byte in msg:
+        for bit in mapping[byte]:
+            numbits += 1
+            buf <<= 0x1
+            if bit == '1':
+                buf |= 0x1
+            if numbits % 8 == 0 and numbits > 0:
+                compressed.append(buf)
+                buf = 0
+    if buf > 0:
+            buf <<= numbits
+    return compressed, (numbits, tree)
 
 
 def decompress(compressed, ring):
     '''Bla'''
-    # Represent the message as an array
-    byte_array = array.array('B', msg)
     raise NotImplementedError
 
 
