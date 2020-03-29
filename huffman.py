@@ -30,12 +30,12 @@ def huff_tree(freqs):
     return nodes[0]
 
 
-def mapping_enc(tree):
+def byte_mapping(tree):
     '''Bla'''
+    assert tree  # can't compress nothing
     mapping = {}
     s = collections.deque()
-    s.append(('1', tree[2][1]))
-    s.append(('0', tree[2][0]))
+    s.append(('', tree))
     # TODO: invariant
     while s:
         codeword, node = s.pop()
@@ -55,7 +55,7 @@ def encode(msg):
     freqs = collections.Counter(msg)
     # TODO: play around with different tree buildings and mappings
     tree = huff_tree(freqs)  # priority queue
-    mapping = mapping_enc(tree)
+    mapping = byte_mapping(tree)
     enc = ''
     for b in msg:
         enc += mapping[b]
@@ -85,26 +85,43 @@ def compress(msg):
     freqs = collections.Counter(msg)
     # TODO: play around with different tree buildings and mappings
     tree = huff_tree(freqs)  # priority queue
-    mapping = mapping_enc(tree)
+    mapping = byte_mapping(tree)
     compressed = bytearray()
-    numbits = buf = 0
+    num_bits = buf = 0
     for byte in msg:
         for bit in mapping[byte]:
-            numbits += 1
+            num_bits += 1
             buf <<= 0x1
             if bit == '1':
                 buf |= 0x1
-            if numbits % 8 == 0 and numbits > 0:
+            if num_bits % 8 == 0:
                 compressed.append(buf)
                 buf = 0
-    if buf > 0:
-            buf <<= numbits
-    return compressed, (numbits, tree)
+    rem_bits = num_bits % 8
+    if rem_bits:
+        buf <<= (8 - rem_bits)
+        compressed.append(buf)
+    return compressed, (num_bits, tree)
 
 
 def decompress(compressed, ring):
     '''Bla'''
-    raise NotImplementedError
+    msg = bytearray()
+    num_bits, start_tree = ring
+    tree = start_tree
+    for byte in compressed:
+        for i in range(7, -1, -1):
+            if num_bits:
+                num_bits -= 1
+                bit = byte & (0x1 << i)
+                if bit:
+                    tree = tree[2][1]
+                else:
+                    tree = tree[2][0]
+                if not isinstance(tree[2], tuple):
+                    msg.append(tree[2])
+                    tree = start_tree
+    return msg
 
 
 def usage():
@@ -143,7 +160,6 @@ if __name__ == '__main__':
                 marshal.dump((pickle.dumps(decoder), compr), fcompressed)
         else:
             enc, decoder = encode(msg)
-            print(msg)
             with open(outfile, 'wb') as fcompressed:
                 marshal.dump((pickle.dumps(decoder), enc), fcompressed)
     else:
