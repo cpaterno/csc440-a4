@@ -30,7 +30,7 @@ def huff_tree(freqs):
     return nodes[0]
 
 
-def mapping_enc(tree):
+def byte_mapping(tree):
     '''Bla'''
     assert tree  # can't compress nothing
     mapping = {}
@@ -55,7 +55,7 @@ def encode(msg):
     freqs = collections.Counter(msg)
     # TODO: play around with different tree buildings and mappings
     tree = huff_tree(freqs)  # priority queue
-    mapping = mapping_enc(tree)
+    mapping = byte_mapping(tree)
     enc = ''
     for b in msg:
         enc += mapping[b]
@@ -85,7 +85,7 @@ def compress(msg):
     freqs = collections.Counter(msg)
     # TODO: play around with different tree buildings and mappings
     tree = huff_tree(freqs)  # priority queue
-    mapping = mapping_enc(tree)
+    mapping = byte_mapping(tree)
     compressed = bytearray()
     num_bits = buf = 0
     for byte in msg:
@@ -98,7 +98,7 @@ def compress(msg):
                 compressed.append(buf)
                 buf = 0
     if buf:
-        buf <<= (num_bits % 8)
+        buf <<= (8 - (num_bits % 8))
         compressed.append(buf)
     return compressed, (num_bits, tree)
 
@@ -158,7 +158,6 @@ if __name__ == '__main__':
                 marshal.dump((pickle.dumps(decoder), compr), fcompressed)
         else:
             enc, decoder = encode(msg)
-            print(msg)
             with open(outfile, 'wb') as fcompressed:
                 marshal.dump((pickle.dumps(decoder), enc), fcompressed)
     else:
