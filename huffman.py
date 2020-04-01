@@ -56,17 +56,16 @@ def encode(msg):
     # TODO: play around with different tree buildings and mappings
     tree = huff_tree(freqs)  # priority queue
     mapping = byte_mapping(tree)
-    rev_mapping = {v: k for k, v in mapping.items()}
     enc = ''
     for b in msg:
         enc += mapping[b]
+    rev_mapping = {v: k for k, v in mapping.items()}
     return enc, rev_mapping
 
 
 def decode(enc, ring):
     '''Bla'''
-    msg = ''
-    word = ''
+    msg = word = ''
     for d in enc:
         if d != '0' and d != '1':
             sys.stderr.write(f'enc must be a valid binary string\n')
@@ -84,23 +83,24 @@ def compress(msg):
     # TODO: play around with different tree buildings and mappings
     tree = huff_tree(freqs)  # priority queue
     mapping = byte_mapping(tree)
-    rev_mapping = {v: k for k, v in mapping.items()}
-    compressed = bytearray()
     enc = ''
     for byte in msg:
         enc += mapping[byte]
-    byte_arr = [enc[i:i + 8] for i in range(0, len(enc), 8)]
-    for e in byte_arr:
-        if len(e) < 8:
-            e += '0' * (8 - len(e))
-        compressed.append(int(e, base=2))
-    return compressed, (len(enc), rev_mapping)
+    num_bits = len(enc)
+    rem_bits = num_bits % 8
+    if rem_bits:
+        enc += '0' * (8 - rem_bits)
+    compressed = bytearray()
+    for i in range(0, len(enc), 8):
+        compressed.append(int(enc[i:i + 8], base=2))
+    rev_mapping = {v: k for k, v in mapping.items()}
+    return compressed, (num_bits, rev_mapping)
 
 
 def decompress(compressed, ring):
     '''Bla'''
-    msg = bytearray()
     num_bits, mapping = ring
+    msg = bytearray()
     word = ''
     for byte in compressed:
         for bit in bin(byte)[2:].zfill(8):
