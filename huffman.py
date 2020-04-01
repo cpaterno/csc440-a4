@@ -30,7 +30,7 @@ def huff_tree(freqs):
     return nodes[0]
 
 
-def byte_mapping_enc(tree):
+def byte_mapping(tree):
     '''Bla'''
     assert tree  # can't compress nothing
     mapping = {}
@@ -55,7 +55,7 @@ def encode(msg):
     freqs = collections.Counter(msg)
     # TODO: play around with different tree buildings and mappings
     tree = huff_tree(freqs)  # priority queue
-    mapping = byte_mapping_enc(tree)
+    mapping = byte_mapping(tree)
     enc = ''
     for b in msg:
         enc += mapping[b]
@@ -80,52 +80,25 @@ def decode(enc, ring):
     return msg
 
 
-def byte_mapping_cmp(tree):
-    '''Bla'''
-    assert tree  # can't compress nothing
-    mapping = {}
-    s = collections.deque()
-    s.append(((0, 0), tree))
-    # TODO: invariant
-    while s:
-        codeword, node = s.pop()
-        # leaf
-        if not isinstance(node[2], tuple):
-            mapping[node[2]] = codeword
-        else:
-            nb, word = codeword
-            nb += 1
-            word <<= 0x1
-            # right
-            s.append(((nb, word | 0x1), node[2][1]))
-            # left
-            s.append(((nb, word), node[2][0]))
-    return mapping
-
-
 def compress(msg):
     '''Bla'''
     freqs = collections.Counter(msg)
     # TODO: play around with different tree buildings and mappings
     tree = huff_tree(freqs)  # priority queue
-    mapping = byte_mapping_cmp(tree)
+    mapping = byte_mapping(tree)
     compressed = bytearray()
-    num_bits = buf = 0
+    num_bits = 0
+    buf = ''
     for byte in msg:
-        width, num = mapping[byte]
-        for i in range(width - 1, -1, -1):
+        for bit in mapping[byte]:
             num_bits += 1
-            buf <<= 0x1
-            bit = num & (0x1 << i)
-            if bit:
-                buf |= 0x1
-            if num_bits % 8 == 0:
-                compressed.append(buf)
-                buf = 0
-    rem_bits = num_bits % 8
-    if rem_bits:
-        buf <<= (8 - rem_bits)
-        compressed.append(buf)
+            buf += bit
+            if len(buf) == 8:
+                compressed.append(int(buf, base=2))
+                buf = ''
+    if buf:
+        buf += '0' * (8 - (num_bits % 8))
+        compressed.append(int(buf, base=2))
     return compressed, (num_bits, tree)
 
 
@@ -135,11 +108,10 @@ def decompress(compressed, ring):
     num_bits, start_tree = ring
     tree = start_tree
     for byte in compressed:
-        for i in range(7, -1, -1):
+        for bit in bin(byte)[2:].zfill(8):
             if num_bits:
                 num_bits -= 1
-                bit = byte & (0x1 << i)
-                if bit:
+                if bit == '1':
                     tree = tree[2][1]
                 else:
                     tree = tree[2][0]
