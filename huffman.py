@@ -84,34 +84,32 @@ def compress(msg):
     # TODO: play around with different tree buildings and mappings
     tree = huff_tree(freqs)  # priority queue
     mapping = byte_mapping(tree)
+    rev_mapping = {v: k for k, v in mapping.items()}
     compressed = bytearray()
     enc = ''
     for byte in msg:
         enc += mapping[byte]
-    byte_arr = [enc[i:i+8] for i in range(0, len(enc), 8)]
+    byte_arr = [enc[i:i + 8] for i in range(0, len(enc), 8)]
     for e in byte_arr:
         if len(e) < 8:
             e += '0' * (8 - len(e))
         compressed.append(int(e, base=2))
-    return compressed, (len(enc), tree)
+    return compressed, (len(enc), rev_mapping)
 
 
 def decompress(compressed, ring):
     '''Bla'''
     msg = bytearray()
-    num_bits, start_tree = ring
-    tree = start_tree
+    num_bits, mapping = ring
+    word = ''
     for byte in compressed:
         for bit in bin(byte)[2:].zfill(8):
             if num_bits:
                 num_bits -= 1
-                if bit == '1':
-                    tree = tree[2][1]
-                else:
-                    tree = tree[2][0]
-                if not isinstance(tree[2], tuple):
-                    msg.append(tree[2])
-                    tree = start_tree
+                word += bit
+                if word in mapping:
+                    msg.append(mapping[word])
+                    word = ''
     return msg
 
 
