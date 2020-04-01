@@ -87,19 +87,15 @@ def compress(msg):
     tree = huff_tree(freqs)  # priority queue
     mapping = byte_mapping(tree)
     compressed = bytearray()
-    num_bits = 0
-    buf = ''
+    enc = ''
     for byte in msg:
-        for bit in mapping[byte]:
-            num_bits += 1
-            buf += bit
-            if len(buf) == 8:
-                compressed.append(int(buf, base=2))
-                buf = ''
-    if buf:
-        buf += '0' * (8 - (num_bits % 8))
-        compressed.append(int(buf, base=2))
-    return compressed, (num_bits, tree)
+        enc += mapping[byte]
+    byte_arr = [enc[i:i+8] for i in range(0, len(enc), 8)]
+    for e in byte_arr:
+        if len(e) < 8:
+            e += '0' * (8 - len(e))
+        compressed.append(int(e, base=2))
+    return compressed, (len(enc), tree)
 
 
 def decompress(compressed, ring):
