@@ -56,27 +56,25 @@ def encode(msg):
     # TODO: play around with different tree buildings and mappings
     tree = huff_tree(freqs)  # priority queue
     mapping = byte_mapping(tree)
+    rev_mapping = {v: k for k, v in mapping.items()}
     enc = ''
     for b in msg:
         enc += mapping[b]
-    return enc, tree
+    return enc, rev_mapping
 
 
 def decode(enc, ring):
     '''Bla'''
     msg = ''
-    tree = ring
+    word = ''
     for d in enc:
         if d != '0' and d != '1':
             sys.stderr.write(f'enc must be a valid binary string\n')
             sys.exit(1)
-        elif d == '0':
-            tree = tree[2][0]
-        else:
-            tree = tree[2][1]
-        if not isinstance(tree[2], tuple):
-            msg += chr(tree[2])
-            tree = ring
+        word += d
+        if word in ring:
+            msg += chr(ring[word])
+            word = ''
     return msg
 
 
