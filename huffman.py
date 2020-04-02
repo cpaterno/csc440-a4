@@ -86,12 +86,11 @@ def compress(msg):
     enc = ''
     for byte in msg:
         enc += mapping[byte]
-    num_bits = len(enc)
-    rem_bits = num_bits % 8
+    rem_bits = len(enc) % 8
     enc += '0' * (8 - rem_bits) if rem_bits else ''
     compressed = bytes([int(enc[i:i + 8], 2) for i in range(0, len(enc), 8)])
     rev_mapping = {v: k for k, v in mapping.items()}
-    return compressed, (num_bits, rev_mapping)
+    return compressed, (rem_bits, rev_mapping)
 
 
 def decompress(compressed, ring):
@@ -99,15 +98,13 @@ def decompress(compressed, ring):
     enc = word = ''
     for byte in compressed:
         enc += bin(byte)[2:].zfill(8)
-    num_bits, mapping = ring
+    rem_bits, mapping = ring
     msg = bytearray()
-    for bit in enc:
-        if num_bits:
-            num_bits -= 1
-            word += bit
-            if word in mapping:
-                msg.append(mapping[word])
-                word = ''
+    for bit in enc[:len(enc) - rem_bits]:
+        word += bit
+        if word in mapping:
+            msg.append(mapping[word])
+            word = ''
     return msg
 
 
