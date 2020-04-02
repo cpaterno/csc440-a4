@@ -133,14 +133,13 @@ def decompress(compressed, ring):
     NOTE: In Python string manipulation is faster than bit twiddling
     '''
     # build up encoded string from bytes
-    enc = word = ''
-    for byte in compressed:
-        enc += bin(byte)[2:].zfill(8)
+    enc = ''.join([bin(b)[2:].zfill(8) for b in compressed])
     padding, mapping = ring
     # removed padded 0s
     enc = enc[:len(enc) - padding]
     # build up uncompressed bytes
     msg = bytearray()
+    word = ''
     for bit in enc:
         word += bit
         # check decoder ring if current substring (word) maps to a byte
