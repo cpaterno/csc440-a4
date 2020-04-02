@@ -18,8 +18,8 @@ def huff_tree(freqs):
     assert len(freqs)  # can't compress nothing
     # list of nodes -> (count, index, symbol), index is added to break ties
     nodes = [(y, i, x) for i, (x, y) in enumerate(freqs.most_common())]
-    idx = len(nodes)
     heapq.heapify(nodes)
+    idx = len(nodes)
     # TODO: Invariant
     while len(nodes) > 1:
         first = heapq.heappop(nodes)
@@ -33,9 +33,9 @@ def huff_tree(freqs):
 def byte_mapping(tree):
     '''Bla'''
     assert tree  # can't compress nothing
-    mapping = {}
     s = collections.deque()
     s.append(('', tree))
+    mapping = {}
     # TODO: invariant
     while s:
         codeword, node = s.pop()
@@ -88,11 +88,8 @@ def compress(msg):
         enc += mapping[byte]
     num_bits = len(enc)
     rem_bits = num_bits % 8
-    if rem_bits:
-        enc += '0' * (8 - rem_bits)
-    compressed = bytearray()
-    for i in range(0, len(enc), 8):
-        compressed.append(int(enc[i:i + 8], 2))
+    enc += '0' * (8 - rem_bits) if rem_bits else ''
+    compressed = bytes([int(enc[i:i + 8], 2) for i in range(0, len(enc), 8)])
     rev_mapping = {v: k for k, v in mapping.items()}
     return compressed, (num_bits, rev_mapping)
 
@@ -146,12 +143,10 @@ if __name__ == '__main__':
             msg = fp.read()
         if compressing:
             compr, decoder = compress(msg)
-            with open(outfile, 'wb') as fcompressed:
-                marshal.dump((pickle.dumps(decoder), compr), fcompressed)
         else:
-            enc, decoder = encode(msg)
-            with open(outfile, 'wb') as fcompressed:
-                marshal.dump((pickle.dumps(decoder), enc), fcompressed)
+            compr, decoder = encode(msg)
+        with open(outfile, 'wb') as fcompressed:
+            marshal.dump((pickle.dumps(decoder), compr), fcompressed)
     else:
         with open(infile, 'rb') as fp:
             pickle_rick, compr = marshal.load(fp)
