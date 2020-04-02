@@ -102,8 +102,9 @@ def decompress(compressed, ring):
     for byte in compressed:
         enc += bin(byte)[2:].zfill(8)
     padding, mapping = ring
+    enc = enc[:len(enc) - padding]
     msg = bytearray()
-    for bit in enc[:len(enc) - padding]:
+    for bit in enc:
         word += bit
         if word in mapping:
             msg.append(mapping[word])
