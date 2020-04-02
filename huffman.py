@@ -76,7 +76,7 @@ def encode(msg):
     # create mapping for encoding
     mapping = byte_mapping(tree)
     # build up the encoded string
-    enc = ''.join(mapping[b] for b in msg)
+    enc = ''.join([mapping[b] for b in msg])
     # create mapping for decoding
     rev_mapping = {v: k for k, v in mapping.items()}
     return enc, rev_mapping
@@ -113,7 +113,7 @@ def compress(msg):
     # create mapping for encoding
     mapping = byte_mapping(tree)
     # build up the encoded string
-    enc = ''.join(mapping[b] for b in msg)
+    enc = ''.join([mapping[b] for b in msg])
     rem_bits = len(enc) % 8
     # add 0s to the end of enc for padding
     padding = 0
