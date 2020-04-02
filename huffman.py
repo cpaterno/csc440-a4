@@ -18,8 +18,8 @@ def huff_tree(freqs):
     assert len(freqs)  # can't compress nothing
     # list of nodes -> (count, index, symbol), index is added to break ties
     nodes = [(y, i, x) for i, (x, y) in enumerate(freqs.most_common())]
-    idx = len(nodes)
     heapq.heapify(nodes)
+    idx = len(nodes)
     # TODO: Invariant
     while len(nodes) > 1:
         first = heapq.heappop(nodes)
@@ -33,9 +33,9 @@ def huff_tree(freqs):
 def byte_mapping(tree):
     '''Bla'''
     assert tree  # can't compress nothing
-    mapping = {}
     s = collections.deque()
     s.append(('', tree))
+    mapping = {}
     # TODO: invariant
     while s:
         codeword, node = s.pop()
@@ -59,24 +59,21 @@ def encode(msg):
     enc = ''
     for b in msg:
         enc += mapping[b]
-    return enc, tree
+    rev_mapping = {v: k for k, v in mapping.items()}
+    return enc, rev_mapping
 
 
 def decode(enc, ring):
     '''Bla'''
-    msg = ''
-    tree = ring
+    msg = word = ''
     for d in enc:
         if d != '0' and d != '1':
             sys.stderr.write(f'enc must be a valid binary string\n')
             sys.exit(1)
-        elif d == '0':
-            tree = tree[2][0]
-        else:
-            tree = tree[2][1]
-        if not isinstance(tree[2], tuple):
-            msg += chr(tree[2])
-            tree = ring
+        word += d
+        if word in ring:
+            msg += chr(ring[word])
+            word = ''
     return msg
 
 
@@ -86,41 +83,32 @@ def compress(msg):
     # TODO: play around with different tree buildings and mappings
     tree = huff_tree(freqs)  # priority queue
     mapping = byte_mapping(tree)
-    compressed = bytearray()
-    num_bits = buf = 0
+    enc = ''
     for byte in msg:
-        for bit in mapping[byte]:
-            num_bits += 1
-            buf <<= 0x1
-            if bit == '1':
-                buf |= 0x1
-            if num_bits % 8 == 0:
-                compressed.append(buf)
-                buf = 0
-    rem_bits = num_bits % 8
+        enc += mapping[byte]
+    rem_bits = len(enc) % 8
+    padding = 0
     if rem_bits:
-        buf <<= (8 - rem_bits)
-        compressed.append(buf)
-    return compressed, (num_bits, tree)
+        padding = 8 - rem_bits
+        enc += '0' * padding
+    compressed = bytes([int(enc[i:i + 8], 2) for i in range(0, len(enc), 8)])
+    rev_mapping = {v: k for k, v in mapping.items()}
+    return compressed, (padding, rev_mapping)
 
 
 def decompress(compressed, ring):
     '''Bla'''
-    msg = bytearray()
-    num_bits, start_tree = ring
-    tree = start_tree
+    enc = word = ''
     for byte in compressed:
-        for i in range(7, -1, -1):
-            if num_bits:
-                num_bits -= 1
-                bit = byte & (0x1 << i)
-                if bit:
-                    tree = tree[2][1]
-                else:
-                    tree = tree[2][0]
-                if not isinstance(tree[2], tuple):
-                    msg.append(tree[2])
-                    tree = start_tree
+        enc += bin(byte)[2:].zfill(8)
+    padding, mapping = ring
+    enc = enc[:len(enc) - padding]
+    msg = bytearray()
+    for bit in enc:
+        word += bit
+        if word in mapping:
+            msg.append(mapping[word])
+            word = ''
     return msg
 
 
@@ -156,12 +144,10 @@ if __name__ == '__main__':
             msg = fp.read()
         if compressing:
             compr, decoder = compress(msg)
-            with open(outfile, 'wb') as fcompressed:
-                marshal.dump((pickle.dumps(decoder), compr), fcompressed)
         else:
-            enc, decoder = encode(msg)
-            with open(outfile, 'wb') as fcompressed:
-                marshal.dump((pickle.dumps(decoder), enc), fcompressed)
+            compr, decoder = encode(msg)
+        with open(outfile, 'wb') as fcompressed:
+            marshal.dump((pickle.dumps(decoder), compr), fcompressed)
     else:
         with open(infile, 'rb') as fp:
             pickle_rick, compr = marshal.load(fp)
